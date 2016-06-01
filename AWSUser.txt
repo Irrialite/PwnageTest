@@ -5,6 +5,6 @@ Secret Access Key:
 KJFsOWxTSAXjUZcEt9b1GNIadBqCodf2r/ilkIcb
 
 GitHub token:
-51eeb532f7985397c0540515c46b5a101594806f
+b0c4d89a024609f907439014bdc2196726661e22
 
 ffs
