@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /app/client
+hooks:
+  BeforeInstall:
+    - location: deploy/install.sh
+      timeout: 300
+	  runas: root
+  ApplicationStop:
+    - location: deploy/stop.sh
+      timeout: 30
+	  runas: root
+  ApplicationStart:
+    - location: deploy/start.sh
+      timeout: 300
+	  runas: root
