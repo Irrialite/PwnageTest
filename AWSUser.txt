@@ -1,8 +1,0 @@
-GitHub
-Access Key ID:
-AKIAIEYD6NDOJXUEZT4A
-Secret Access Key:
-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
-
-GitHub token:
-c65ebca52a83e43890eb4637734c237ad9c745ab
