@@ -2,10 +2,18 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /app/client
+    destination: /app/clientTemp
+permissions:
+  - object: /app/client
+    owner: root
+    group: root
 hooks:
   BeforeInstall:
-    - location: deploy/install.sh
+    - location: deploy/beforeInstall.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: deploy/afterInstall.sh
       timeout: 300
       runas: root
   ApplicationStop:

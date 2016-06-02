@@ -3,3 +3,7 @@ sudo sh -c 'echo "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotne
 sudo apt-key adv --keyserver apt-mo.trafficmanager.net --recv-keys 417A0893
 sudo apt-get -y update
 sudo apt-get -y install dotnet-dev-1.0.0-preview1-002702
+
+if [ -d /app/client ]; then
+	rm -rf /app/client
+fi
