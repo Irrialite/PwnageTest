@@ -17,7 +17,15 @@ namespace ConsoleApp1
             var sock = new Socket(SocketType.Stream, ProtocolType.IP);
             try
             {
-                sock.ConnectAsync(new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 6789)).GetAwaiter().GetResult();
+                var ipAddresses = Dns.GetHostAddressesAsync("ec2-54-209-126-92.compute-1.amazonaws.com").GetAwaiter().GetResult();
+                if (ipAddresses.Length > 0)
+                {
+                    sock.ConnectAsync(new IPEndPoint(ipAddresses[0], 6789)).GetAwaiter().GetResult();
+                }
+                else
+                {
+                    sock.ConnectAsync(new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 6789)).GetAwaiter().GetResult();
+                }
                 var ev = new GameEvent(EGameEventID.Handshake, new ClientHandshake()
                 {
                     game = 1,

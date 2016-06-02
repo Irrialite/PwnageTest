@@ -1,4 +1,4 @@
 #!/bin/bash
-if [ -d /app/client ]; then
-	rm -rf /app/client
+if [ -d /app/clientTemp ]; then
+	rm -rf /app/clientTemp
 fi
