@@ -1,1 +1,1 @@
-sudo kill $(pgrep dotnet)
+sudo pkill dotnet
