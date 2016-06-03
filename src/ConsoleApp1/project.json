@@ -11,7 +11,9 @@
 	  },
   "System.Net.WebSockets.Client": "4.0.0-rc2-24027",
   "Microsoft.AspNetCore.WebSockets.Protocol": "0.1.0-*",
-  "NetworkBase" : "1.0.0-*"
+  "NetworkBase" : "1.0.0-*",
+  "Serilog.Sinks.RollingFile": "2.0.0-rc-703",
+	"Serilog.Sinks.Literate": "2.0.0-rc-25",
   },
 
   "frameworks": {

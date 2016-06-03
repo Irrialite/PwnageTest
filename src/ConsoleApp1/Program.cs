@@ -7,6 +7,9 @@ using NetworkBase.Events;
 using NetworkBase.Events.Args;
 using NetworkBase.Collections;
 using System.Net;
+using System.IO;
+using Serilog;
+using Serilog.Sinks.RollingFile;
 
 namespace ConsoleApp1
 {
@@ -14,17 +17,33 @@ namespace ConsoleApp1
     {
         public static void Main(string[] args)
         {
+            var hostName = "ec2-52-87-205-193.compute-1.amazonaws.com";
+            var exePath = Directory.GetCurrentDirectory();
+            var port = 6789;
+
+            Directory.CreateDirectory(exePath + "/log");
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Is(Serilog.Events.LogEventLevel.Verbose)
+                .Enrich.FromLogContext()
+                .WriteTo.RollingFile($"{exePath}/log/{{Date}}-log.txt", fileSizeLimitBytes: 10 * 1024 * 1024)
+                .WriteTo.LiterateConsole()
+                .CreateLogger();
+
             var sock = new Socket(SocketType.Stream, ProtocolType.IP);
             try
             {
-                var ipAddresses = Dns.GetHostAddressesAsync("ec2-54-209-126-92.compute-1.amazonaws.com").GetAwaiter().GetResult();
+                var ipAddresses = Dns.GetHostAddressesAsync(hostName).GetAwaiter().GetResult();
+                Log.Logger.Debug($"Got {ipAddresses.Length} IPs for {hostName}.");
                 if (ipAddresses.Length > 0)
                 {
-                    sock.ConnectAsync(new IPEndPoint(ipAddresses[0], 6789)).GetAwaiter().GetResult();
+                    Log.Logger.Debug($"Connecting to {ipAddresses[0]} at {port}.");
+                    sock.ConnectAsync(new IPEndPoint(ipAddresses[0], port)).GetAwaiter().GetResult();
                 }
                 else
                 {
-                    sock.ConnectAsync(new IPEndPoint(new IPAddress(new byte[] { 127, 0, 0, 1 }), 6789)).GetAwaiter().GetResult();
+                    var localhost = new IPAddress(new byte[] { 127, 0, 0, 1 });
+                    Log.Logger.Debug($"Connecting to {localhost} at {port}.");
+                    sock.ConnectAsync(new IPEndPoint(localhost, port)).GetAwaiter().GetResult();
                 }
                 var ev = new GameEvent(EGameEventID.Handshake, new ClientHandshake()
                 {
@@ -46,10 +65,10 @@ namespace ConsoleApp1
 
                     if (ges.Length > 0)
                     {
-                        Console.WriteLine($"Received {ges.Length} events.");
+                        Log.Logger.Information($"Received {ges.Length} events.");
                         foreach (var ge in ges)
                         {
-                            Console.WriteLine($"Event {ge.ID}.");
+                            Log.Logger.Information($"Event {ge.ID}.");
                             sock.SendEventAsync(new GameEvent(EGameEventID.BetSetHack, null, null)).GetAwaiter().GetResult();
                         }
                     }
@@ -57,8 +76,7 @@ namespace ConsoleApp1
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
+                Log.Logger.Error(e, "Error occurred.");
             }
 
             //var ws = new WebSocketClient();
