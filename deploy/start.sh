@@ -1,4 +1,6 @@
 #!/bin/bash
+# exit on any error code
+set -e
 cd /app/client/src/ConsoleApp1/
 sudo dotnet restore
 path=$(sudo dotnet publish --configuration Release | grep -Pio "(?<=published to )(.+)")
