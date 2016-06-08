@@ -68,6 +68,7 @@ namespace ConsoleApp1
                     Log.Logger.Debug($"Connecting to {ipAddresses[0]} at {port}.");
                     sock.ConnectAsync(new IPEndPoint(ipAddresses[0], port)).GetAwaiter().GetResult();
                 }
+                Log.Logger.Debug($"Sending handshake for game id {server[0]} and instance id {server[1]}.");
                 var ev = new GameEvent(EGameEventID.Handshake, new ClientHandshake()
                 {
                     game = server[0],
