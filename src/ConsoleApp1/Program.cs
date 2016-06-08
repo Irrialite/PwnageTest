@@ -10,6 +10,8 @@ using System.Net;
 using System.IO;
 using Serilog;
 using Serilog.Sinks.RollingFile;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ConsoleApp1
 {
@@ -29,26 +31,47 @@ namespace ConsoleApp1
                 .WriteTo.LiterateConsole()
                 .CreateLogger();
 
-            var sock = new Socket(SocketType.Stream, ProtocolType.IP);
             try
             {
                 var ipAddresses = Dns.GetHostAddressesAsync(hostName).GetAwaiter().GetResult();
                 Log.Logger.Debug($"Got {ipAddresses.Length} IPs for {hostName}.");
-                if (ipAddresses.Length > 0)
+                bool useLocal = ipAddresses.Length == 0;
+
+                // query servers first
+                var uri = $"http://{(useLocal ? "localhost:5004" : ipAddresses[0].ToString())}/api/gameinstance/getserverlist";
+                var req = WebRequest.CreateHttp(uri);
+                var response = req.GetResponseAsync().GetAwaiter().GetResult();
+                int[] server = new int[2];
+                using (var stream = response.GetResponseStream())
                 {
-                    Log.Logger.Debug($"Connecting to {ipAddresses[0]} at {port}.");
-                    sock.ConnectAsync(new IPEndPoint(ipAddresses[0], port)).GetAwaiter().GetResult();
+                    using (var sr = new StreamReader(stream))
+                    {
+                        var list = JsonConvert.DeserializeObject<GameServerList>(sr.ReadToEnd());
+                        if (list.servers.Length == 0)
+                        {
+                            Log.Logger.Error($"No servers found on {uri} game server.");
+                            return;
+                        }
+                        server = list.servers[new Random().Next(0, list.servers.Length)];
+                    }
                 }
-                else
+
+                var sock = new Socket(SocketType.Stream, ProtocolType.IP);
+                if (useLocal)
                 {
                     var localhost = new IPAddress(new byte[] { 127, 0, 0, 1 });
                     Log.Logger.Debug($"Connecting to {localhost} at {port}.");
                     sock.ConnectAsync(new IPEndPoint(localhost, port)).GetAwaiter().GetResult();
                 }
+                else
+                {
+                    Log.Logger.Debug($"Connecting to {ipAddresses[0]} at {port}.");
+                    sock.ConnectAsync(new IPEndPoint(ipAddresses[0], port)).GetAwaiter().GetResult();
+                }
                 var ev = new GameEvent(EGameEventID.Handshake, new ClientHandshake()
                 {
-                    game = 1,
-                    instance = 1,
+                    game = server[0],
+                    instance = server[1],
                 }, null);
                 var bytesSent = sock.SendEventAsync(ev).GetAwaiter().GetResult();
 
